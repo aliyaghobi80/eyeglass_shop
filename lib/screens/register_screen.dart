@@ -6,8 +6,9 @@ class RegisterScreen extends StatelessWidget {
   final AuthController authController = Get.find<AuthController>();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController phoneNumberController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
 
   RegisterScreen({super.key});
 
@@ -32,37 +33,41 @@ class RegisterScreen extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               TextField(
+                controller: emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: firstNameController,
+                decoration: const InputDecoration(labelText: 'First Name'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: lastNameController,
+                decoration: const InputDecoration(labelText: 'Last Name'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
                 controller: passwordController,
                 decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
               ),
               const SizedBox(height: 20),
-              TextField(
-                controller: phoneNumberController,
-                decoration: const InputDecoration(labelText: 'Phone Number'),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: addressController,
-                decoration: const InputDecoration(labelText: 'address'),
-              ),
-              const SizedBox(height: 20),
               Obx(
-                () =>
-                    authController.isLoading.value
-                        ? const CircularProgressIndicator()
-                        : ElevatedButton(
-                          onPressed: () {
-                            authController.register(
-                              username: usernameController.text,
-                              password: passwordController.text,
-                              phoneNumber: phoneNumberController.text,
-                              address: addressController.text,
-                            );
-                            print('registered❤️');
-                          },
-                          child: const Text('Register'),
-                        ),
+                    () => authController.isLoading.value
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                  onPressed: () {
+                    authController.register(
+                      username: usernameController.text,
+                      password: passwordController.text,
+                      email: emailController.text,
+                      firstName: firstNameController.text,
+                      lastName: lastNameController.text,
+                    );
+                  },
+                  child: const Text('Register'),
+                ),
               ),
               const SizedBox(height: 10),
               TextButton(
