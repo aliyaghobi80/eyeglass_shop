@@ -3,37 +3,44 @@ import 'package:http/http.dart' as http;
 import '../models/user.dart';
 import '../utils/constants.dart';
 
-
 class ApiService {
+  // ورود به سیستم
   Future<User> login(String username, String password) async {
     try {
       final response = await http.post(
-        Uri.parse(Constants.loginUrl),  // باید /api/auth/login/ باشه
-        headers: {
-          'Content-Type': 'application/json',
-        },
-
+        Uri.parse(Constants.loginUrl),
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': username, 'password': password}),
       );
 
       print('Login Response Status: ${response.statusCode}');
       print('Login Response Body: ${response.body}');
 
-
       if (response.statusCode == 200) {
-        print(User.fromJson(jsonDecode(response.body)));
-        return User.fromJson(jsonDecode(response.body));
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+        // ترکیب توکن‌ها و داده‌های کاربر
+        final Map<String, dynamic> userData = {
+          ...responseData['user'] as Map<String, dynamic>,
+          'token': responseData['token'],
+          'refresh_token': responseData['refresh_token'],
+        };
+
+        return User.fromJson(userData);
       } else {
-        print('Failed to login: ${response.statusCode} - ${response.body}');
-        throw Exception('Failed to login: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to login: ${response.body}');
       }
     } catch (e) {
-      print(e.toString());
       throw Exception('Login Error: $e');
     }
   }
-
-  Future<User> register({required String username,required String password,required String phoneNumber,required String address,}) async {
+  Future<User> register({
+    required String username,
+    required String password,
+    required String email,
+    String? firstName,
+    String? lastName,
+  }) async {
     try {
       final response = await http.post(
         Uri.parse(Constants.registerUrl),
@@ -41,8 +48,9 @@ class ApiService {
         body: jsonEncode({
           'username': username,
           'password': password,
-          'phone_number': phoneNumber,
-          'address': address,
+          'email': email,
+          'first_name': firstName ?? '',
+          'last_name': lastName ?? '',
         }),
       );
 
@@ -50,7 +58,13 @@ class ApiService {
       print('Register Response Body: ${response.body}');
 
       if (response.statusCode == 201) {
-        return User.fromJson(jsonDecode(response.body));
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+        return User.fromJson({
+          ...responseData['user'] as Map<String, dynamic>,
+          'token': responseData['token'] ?? '',
+          'refresh_token': responseData['refresh_token'] ?? '',
+        });
       } else {
         throw Exception('Failed to register: ${response.body}');
       }
@@ -58,22 +72,20 @@ class ApiService {
       throw Exception('Register Error: $e');
     }
   }
-
-  Future<Map<String, dynamic>> getUserProfile(String token) async {
+  // دریافت جزئیات محصول
+  Future<Map<String, dynamic>> getProduct(int productId) async {
     final response = await http.get(
-      Uri.parse('${Constants.baseUrl}auth/user/'),
-      headers: {
-        'Authorization': 'Token $token',
-      },
+      Uri.parse('${Constants.productUrl}$productId/'),
+      headers: {'Content-Type': 'application/json'},
     );
 
-    print('User Profile Response Status: ${response.statusCode}');
-    print('User Profile Response Body: ${response.body}');
+    print('Product Response Status: ${response.statusCode}');
+    print('Product Response Body: ${response.body}');
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Failed to get user profile: ${response.body}');
+      throw Exception('Failed to get product: ${response.body}');
     }
   }
 }

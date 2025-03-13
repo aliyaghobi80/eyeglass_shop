@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
 
 class LoginScreen extends StatelessWidget {
+
   final AuthController authController = Get.put(AuthController());
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
