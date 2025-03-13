@@ -1,3 +1,4 @@
+import 'package:eyewear/utils/utf_fix.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
@@ -19,20 +20,19 @@ class HomeScreen extends StatelessWidget {
                 authController.logout();
               }
             },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'logout',
-                child: Text('Logout'),
-              ),
-            ],
+            itemBuilder:
+                (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'logout',
+                    child: Text('Logout'),
+                  ),
+                ],
           ),
         ],
       ),
       body: Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // بررسی وضعیت ادمین بودن کاربر
             FutureBuilder<bool>(
               future: authController.isAdmin(),
               builder: (context, snapshot) {
@@ -42,27 +42,19 @@ class HomeScreen extends StatelessWidget {
                 return Text('Admin: ${snapshot.data ?? false}');
               },
             ),
-
-            // نمایش اطلاعات کاربر
             Obx(() {
+
               if (authController.user.value == null) {
                 return const CircularProgressIndicator();
               }
-              final user = authController.user.value!;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Username: ${user.username}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text('Email: ${user.email}', style: TextStyle(fontSize: 16)),
-                  Text('First Name: ${user.firstName}', style: TextStyle(fontSize: 16)),
-                  Text('Last Name: ${user.lastName}', style: TextStyle(fontSize: 16)),
-                  Text('Active: ${user.isActive}', style: TextStyle(fontSize: 16)),
-                  Text('Staff: ${user.isStaff}', style: TextStyle(fontSize: 16)),
-                  Text('Admin: ${user.isSuperuser}', style: TextStyle(fontSize: 16)),
-                  Text('Date Joined: ${user.dateJoined?.toLocal() ?? "N/A"}', style: TextStyle(fontSize: 16)),
-                  Text('Last Login: ${user.lastLogin?.toLocal() ?? "N/A"}', style: TextStyle(fontSize: 16)),
-                ],
-              );
+              // نمایش اطلاعات یوزر
+              return Column(children: [
+                Text('username: ${authController.user.value!.username}'),
+                Text('phoneNumber: ${authController.user.value!.phoneNumber}'),
+                Text('token: ${authController.user.value!.token}'),
+
+                Text('address: ${decodeUTF8(authController.user.value!.address)}'),
+              ],);
             }),
           ],
         ),
