@@ -1,4 +1,3 @@
-import 'package:eyewear/models/user.dart';
 import 'package:eyewear/utils/utf_fix.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
