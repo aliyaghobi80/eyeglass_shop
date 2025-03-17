@@ -22,12 +22,10 @@ class AuthController extends GetxController {
     return user.value!.isSuperuser;
   }
 
-
   Future<void> _loadUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // بارگیری اطلاعات ذخیره‌شده
       final username = prefs.getString('username') ?? '';
       final email = prefs.getString('email') ?? '';
       final firstName = prefs.getString('first_name') ?? '';
@@ -40,10 +38,6 @@ class AuthController extends GetxController {
       final token = prefs.getString('access_token') ?? '';
       final refreshToken = prefs.getString('refresh_token') ?? '';
 
-      print('username SharedPreferences✔️✔️\n is $username');
-      print('access_token is: $token');
-
-      // اگر توکن یا نام کاربری وجود نداره، به لاگین برو
       if (token.isEmpty || username.isEmpty) {
         if (Get.currentRoute != '/login') {
           Get.offAllNamed('/login');
@@ -51,16 +45,12 @@ class AuthController extends GetxController {
         return;
       }
 
-      // چک کردن انقضای توکن و رفرش کردن در صورت نیاز
       String validToken = token;
       if (JwtDecoder.isExpired(token)) {
-        print('Access token is expired, attempting to refresh...');
         try {
           validToken = await apiService.refreshAccessToken(refreshToken);
-          await prefs.setString('access_token', validToken); // ذخیره توکن جدید
-          print('New access_token: $validToken');
+          await prefs.setString('access_token', validToken);
         } catch (e) {
-          print('Failed to refresh token: $e');
           if (Get.currentRoute != '/login') {
             Get.offAllNamed('/login');
           }
@@ -68,7 +58,6 @@ class AuthController extends GetxController {
         }
       }
 
-      // اگر توکن معتبره، اطلاعات کاربر رو بارگذاری کن
       user.value = User(
         username: username,
         email: email,
@@ -79,21 +68,21 @@ class AuthController extends GetxController {
         isActive: isActive,
         dateJoined: dateJoined != null ? DateTime.parse(dateJoined) : null,
         lastLogin: lastLogin != null ? DateTime.parse(lastLogin) : null,
-        accessToken: validToken, // استفاده از توکن معتبر (جدید یا قدیمی)
+        accessToken: validToken,
         refreshToken: refreshToken,
       );
-      print('User loaded: ${user.value}');
+
       if (Get.currentRoute != '/home') {
-        Get.offAllNamed('/home'); // انتقال به صفحه هوم
+        Get.offAllNamed('/home');
       }
     } catch (e) {
-      print('Error in _loadUser: $e');
-      Get.snackbar('Error', 'Failed to load user data: $e');
+      Get.snackbar('خطا', 'خطا در بارگذاری اطلاعات کاربر: $e');
       if (Get.currentRoute != '/login') {
         Get.offAllNamed('/login');
       }
     }
   }
+
   Future<void> _saveUser(User user) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', user.username);
@@ -113,10 +102,6 @@ class AuthController extends GetxController {
     );
     await prefs.setString('access_token', user.accessToken);
     await prefs.setString('refresh_token', user.refreshToken);
-
-    print("Retrieved Access Token: ${prefs.getString('access_token')}");
-    print("Retrieved Refresh Token: ${prefs.getString('refresh_token')}");
-
   }
 
   Future<void> login(String username, String password) async {
@@ -126,7 +111,7 @@ class AuthController extends GetxController {
 
       if (loggedInUser.accessToken.isEmpty ||
           loggedInUser.refreshToken.isEmpty) {
-        throw Exception('Login failed: Tokens are missing');
+        throw Exception('خطا در ورود: توکن‌ها یافت نشدند');
       }
 
       user.value = loggedInUser;
@@ -135,10 +120,10 @@ class AuthController extends GetxController {
       Get.offAllNamed('/home');
     } catch (e) {
       final errorMsg =
-          e.toString().contains('Exception:')
-              ? e.toString().replaceFirst('Exception: ', '')
-              : 'An error occurred while logging in.';
-      Get.snackbar('Error', errorMsg);
+      e.toString().contains('Exception:')
+          ? e.toString().replaceFirst('Exception: ', '')
+          : 'خطا در ورود به سیستم';
+      Get.snackbar('خطا', errorMsg);
     } finally {
       isLoading(false);
     }
@@ -164,7 +149,7 @@ class AuthController extends GetxController {
       await _saveUser(registeredUser);
       Get.offAllNamed('/home');
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      Get.snackbar('خطا', e.toString());
     } finally {
       isLoading(false);
     }
@@ -176,22 +161,20 @@ class AuthController extends GetxController {
       final accessToken = prefs.getString('access_token') ?? '';
       final refreshToken = prefs.getString('refresh_token') ?? '';
 
-      print("Refresh Token before logout: $refreshToken");
-
       if (accessToken.isNotEmpty && refreshToken.isNotEmpty) {
         String validToken = accessToken;
-        if (JwtDecoder.isExpired(accessToken)) { // اضافه کردن jwt_decoder
+        if (JwtDecoder.isExpired(accessToken)) {
           validToken = await apiService.refreshAccessToken(refreshToken);
           await prefs.setString('access_token', validToken);
         }
-        await apiService.logout(validToken,refreshToken);
+        await apiService.logout();
       }
 
       await prefs.clear();
       user.value = null;
       Get.offAllNamed('/login');
     } catch (e) {
-      Get.snackbar('Error', 'Failed to log out: $e');
+      Get.snackbar('خطا', 'خطا در خروج از سیستم: $e');
     }
   }
 }
