@@ -70,6 +70,36 @@ class CustomDrawer extends StatelessWidget {
               },
             );
           }),
+
+          FutureBuilder(future: authController.isAdmin(), builder: (context,snapshot){
+            if(!snapshot.hasData){
+              return  ListTile(
+                leading: Icon(Icons.device_unknown),
+                title: Text('دیتای وجود ندارد'),
+                onTap: () {},
+              );
+            }
+
+            if(snapshot.hasError){
+              return  ListTile(
+                leading: Icon(Icons.error_outline),
+                title: Text('خطا'),
+                onTap: () {},
+              );
+            }
+
+            if(snapshot.connectionState==ConnectionState.waiting){
+              return CircularProgressIndicator();
+            }
+
+            return  ListTile(
+              leading: Icon(Icons.category),
+              title: Text('اضافه کردن محصول'),
+              onTap: () {
+                Get.toNamed('/add-product');
+              },
+            );
+          }),
           ListTile(
             leading: Icon(Icons.settings),
             title: Text('تنظیمات'),
