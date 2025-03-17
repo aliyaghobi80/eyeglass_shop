@@ -41,18 +41,38 @@ class CustomDrawer extends StatelessWidget {
 
             decoration: BoxDecoration(color: Colors.blue),
           ),
+          FutureBuilder(future: authController.isAdmin(), builder: (context,snapshot){
+            if(!snapshot.hasData){
+              return  ListTile(
+                leading: Icon(Icons.device_unknown),
+                title: Text('دیتای وجود ندارد'),
+                onTap: () {},
+              );
+            }
 
-          ListTile(
-            leading: Icon(Icons.category),
-            title: Text('اضافه کردن دسته‌بندی عینک'),
-            onTap: () {
-              Get.toNamed('/manageCategories');
-            },
-          ),
+            if(snapshot.hasError){
+              return  ListTile(
+                leading: Icon(Icons.error_outline),
+                title: Text('خطا'),
+                onTap: () {},
+              );
+            }
 
+            if(snapshot.connectionState==ConnectionState.waiting){
+              return CircularProgressIndicator();
+            }
+
+            return  ListTile(
+              leading: Icon(Icons.category),
+              title: Text('اضافه کردن دسته‌بندی'),
+              onTap: () {
+                Get.toNamed('/manage-categories');
+              },
+            );
+          }),
           ListTile(
             leading: Icon(Icons.settings),
-            title: Text('تنظیمات برنامه'),
+            title: Text('تنظیمات'),
             onTap: () {
               Get.toNamed('/setting');
             },
