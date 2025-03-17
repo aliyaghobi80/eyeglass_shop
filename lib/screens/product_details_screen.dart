@@ -1,11 +1,18 @@
 
+import 'package:eyewear/models/product.dart';
 import 'package:eyewear/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:persian_number_utility/persian_number_utility.dart';
+
+import '../controllers/cart_controller.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
    ProductDetailsScreen({super.key});
   final Map<String,dynamic> product = Get.arguments as Map<String,dynamic>;
+
+   final CartController cartController = Get.find();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +76,7 @@ class ProductDetailsScreen extends StatelessWidget {
 
                 Text(" نام محصول: ${product['name']?.toString() ?? ''}",
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -93,44 +100,33 @@ class ProductDetailsScreen extends StatelessWidget {
                             const Text(
                               'قیمت اصلی: ',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 15,
                                 color: Colors.grey,
                               ),
                             ),
-                            Text(
-                              '${product['price']} تومان',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                decoration: TextDecoration.lineThrough,
-                                color: Colors.grey,
-                              ),
-                            ),
+
                           ],
                         ),
                         const SizedBox(height: 8),
                       ],
                       Row(
                         children: [
-                          Text(
-                            product['is_sale'] == true
-                                ? 'قیمت با تخفیف: '
-                                : 'قیمت: ',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(fontSize: 15),
+                              children: [
+                                TextSpan(text: product['is_sale'] == true
+                                    ? 'قیمت با تخفیف: '
+                                    : 'قیمت: ',),
+                                TextSpan(
+                                  text: '${product['is_sale'] == true ? product['sale_price'] : product['price']} '.seRagham(),
+                                  style: TextStyle(color: Colors.green.shade300),
+                                ),
+                                TextSpan(text: ' تومان'),
+                              ],
                             ),
-                          ),
-                          Text(
-                            '${product['is_sale'] == true ? product['sale_price'] : product['price']} تومان',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color:
-                              product['is_sale'] == true
-                                  ? Colors.red
-                                  : Colors.blue,
-                            ),
-                          ),
+                            overflow: TextOverflow.fade,
+                          )
                         ],
                       ),
                     ],
@@ -163,9 +159,10 @@ class ProductDetailsScreen extends StatelessWidget {
                     onPressed:
                     product['is_available'] == true
                         ? () {
+                      cartController.addToCart(Product.fromJson(product));
                       Get.snackbar(
                         'اطلاع‌رسانی',
-                        'این قابلیت به زودی اضافه خواهد شد',
+                        'با موفقیت به سبد خرید اضافه شد✔️😍',
                         snackPosition: SnackPosition.BOTTOM,
                         backgroundColor: Colors.blue,
                         colorText: Colors.white,

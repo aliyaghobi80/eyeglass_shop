@@ -45,6 +45,7 @@ dependencies:
   cached_network_image: ^3.4.1
   path_provider: ^2.1.5
   get_storage: ^2.1.1
+  persian_number_utility: ^1.1.4
 
 dev_dependencies:
   flutter_test:

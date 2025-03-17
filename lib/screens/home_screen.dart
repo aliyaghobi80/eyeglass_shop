@@ -1,18 +1,22 @@
+
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:eyewear/controllers/cart_controller.dart';
 import 'package:eyewear/controllers/product_controller.dart';
+import 'package:eyewear/models/product.dart';
 import 'package:eyewear/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:persian_number_utility/persian_number_utility.dart';
 import '../controllers/auth_controller.dart';
+import '../widgets/cart_Icon_Badge.dart';
 import '../widgets/custom_drawer.dart';
 
 class HomeScreen extends StatelessWidget {
-
-
   HomeScreen({super.key});
 
   final AuthController authController = Get.find<AuthController>();
   final ProductController productController = Get.find<ProductController>();
+  final CartController cartController = Get.put(CartController());
 
   @override
   Widget build(BuildContext context) {
@@ -20,27 +24,39 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('فروشگاه عینک'),
         centerTitle: true,
-        actions: [],
+        actions: [
+          Obx(
+            () => CartIconWithBadge(
+              itemCount: cartController.cartItems.value.length,
+              onTap: () {
+                Get.toNamed('cart');
+              },
+            ),
+          ),
+        ],
       ),
       drawer: CustomDrawer(),
       body: Obx(() {
         if (productController.isLoading.value) {
-          return Center(child: CircularProgressIndicator(),);
+          return Center(child: CircularProgressIndicator());
         }
 
         return RefreshIndicator(
           onRefresh: () => productController.fetchProducts(),
-          child: productController.products.isEmpty
-              ? _buildEmptyState()
-              : ListView.builder(itemCount: productController.products.length,
-              itemBuilder: (context, index) {
-                final product = productController.products[index];
-                return _buildProductCard(product);
-              }),);
+          child:
+              productController.products.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.builder(
+                    itemCount: productController.products.length,
+                    itemBuilder: (context, index) {
+                      final product = productController.products[index];
+                      return _buildProductCard(product);
+                    },
+                  ),
+        );
       }),
     );
   }
-
 
   Widget _buildEmptyState() {
     return Center(
@@ -63,10 +79,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-
-
-
-
   Widget _buildProductCard(Map<String, dynamic> product) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -74,7 +86,9 @@ class HomeScreen extends StatelessWidget {
         textDirection: TextDirection.rtl,
         child: Card(
           elevation: 5,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: InkWell(
             onTap: () => Get.toNamed('/product-details', arguments: product),
             borderRadius: BorderRadius.circular(12),
@@ -90,21 +104,21 @@ class HomeScreen extends StatelessWidget {
                         child: Image.network(
                           '${Constants.baseUrl}${product['image']}',
                           width: 100,
-                          height: 100,
+                          height: 120,
                           fit: BoxFit.cover,
                           errorBuilder:
                               (context, error, stackTrace) => Container(
-                            width: 100,
-                            height: 100,
-                            color: Colors.grey[200],
-                            child: const Center(
-                              child: Icon(
-                                Icons.image_not_supported,
-                                size: 40,
-                                color: Colors.grey,
+                                width: 100,
+                                height: 120,
+                                color: Colors.grey[200],
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.image_not_supported,
+                                    size: 40,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -136,8 +150,9 @@ class HomeScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 if (product['is_sale'] == true) ...[
+
                                   Text(
-                                    '${product['price']} تومان',
+                                    ' قیمت: ${"${product['price']}".seRagham()} تومان ',
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.grey[600],
@@ -147,14 +162,14 @@ class HomeScreen extends StatelessWidget {
                                   const SizedBox(height: 4),
                                 ],
                                 Text(
-                                  '${product['is_sale'] == true ? product['sale_price'] : product['price']} تومان',
+                                  ' قیمت: ${"${product['is_sale']?product['sale_price']:product['price']}".seRagham()} تومان ',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color:
-                                    product['is_sale'] == true
-                                        ? Colors.red
-                                        : Colors.blue,
+                                        product['is_sale'] == true
+                                            ? Colors.green
+                                            : Colors.white,
                                   ),
                                 ),
                               ],
@@ -169,31 +184,34 @@ class HomeScreen extends StatelessWidget {
                                       : 'ناموجود',
                                   style: TextStyle(
                                     color:
-                                    product['is_available'] == true
-                                        ? Colors.green
-                                        : Colors.red,
+                                        product['is_available'] == true
+                                            ? Colors.white70
+                                            : Colors.red,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 IconButton(
                                   onPressed:
-                                  product['is_available'] == true
-                                      ? () {
-                                    Get.snackbar(
-                                      'اضافه به سبد خرید',
-                                      'این قابلیت به زودی اضافه خواهد شد',
-                                      snackPosition: SnackPosition.BOTTOM,
-                                      backgroundColor: Colors.blue,
-                                      colorText: Colors.white,
-                                    );
-                                  }
-                                      : null,
+                                      product['is_available'] == true
+                                          ? () {
+                                            cartController.addToCart(Product.fromJson(product)); // ✅ درست کار می‌کند
+
+                                            Get.snackbar(
+                                              'اضافه شد',
+                                              'به سبد خرید اضافه شد',
+                                              snackPosition:
+                                                  SnackPosition.BOTTOM,
+                                              backgroundColor: Colors.blue,
+                                              colorText: Colors.white,
+                                            );
+                                          }
+                                          : null,
                                   icon: Icon(
                                     Icons.shopping_cart,
                                     color:
-                                    product['is_available'] == true
-                                        ? Colors.blue
-                                        : Colors.grey,
+                                        product['is_available'] == true
+                                            ? Colors.blue
+                                            : Colors.grey,
                                   ),
                                 ),
                               ],
@@ -238,4 +256,3 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
-

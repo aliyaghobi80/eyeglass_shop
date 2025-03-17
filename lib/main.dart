@@ -1,5 +1,6 @@
 import 'package:eyewear/controllers/product_controller.dart';
 import 'package:eyewear/screens/add_product_screen.dart';
+import 'package:eyewear/screens/cart_screen.dart';
 import 'package:eyewear/screens/manage_categories_screen.dart';
 import 'package:eyewear/screens/product_details_screen.dart';
 import 'package:eyewear/screens/setting_screen.dart';
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/setting', page: () => SettingScreen()),
         GetPage(name: '/product-details', page: () => ProductDetailsScreen()),
         GetPage(name: '/add-product', page: () => AddProductScreen()),
+        GetPage(name: '/cart', page: () => CartScreen()),
 
         GetPage(
           name: '/manage-categories',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:persian_number_utility/persian_number_utility.dart';
 import 'dart:io';
 import '../controllers/product_controller.dart';
 
@@ -24,7 +25,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   bool _isAvailable = true;
   int _selectedCategory = 1;
   final ProductController _productController = Get.find<ProductController>();
-
+  RxInt price=0.obs;
+  RxInt salePrice=0.obs;
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -142,17 +144,27 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
+                Obx(() => Text(" مجموع: ${'$price'.toWord()} تومان ",
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold))),
                 TextFormField(
                   controller: _priceController,
+
                   decoration: const InputDecoration(
                     labelText: 'قیمت',
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
+                  onChanged: (val){
+                    if(val.isEmpty){
+                      price.value=0;
+                    }
+                    price.value=int.parse(val);
+                  },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'لطفا قیمت را وارد کنید';
                     }
+
                     return null;
                   },
                 ),
@@ -168,9 +180,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ),
                 if (_isSale) ...[
                   const SizedBox(height: 16),
+                  Obx(() => Text(" مجموع: ${'$salePrice'.toWord()} تومان ",
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold))),
                   TextFormField(
                     controller: _salePriceController,
+                    onChanged: (val){
+                      if(val.isEmpty){
+                        salePrice.value=0;
+                      }
+                      salePrice.value=int.parse(val);
+                    },
                     decoration: const InputDecoration(
+
                       labelText: 'قیمت فروش ویژه',
                       border: OutlineInputBorder(),
                     ),

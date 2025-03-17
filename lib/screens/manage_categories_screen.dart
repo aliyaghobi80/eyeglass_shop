@@ -14,7 +14,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
   final _nameController = TextEditingController();
   final _editNameController = TextEditingController();
   final ProductController _productController = Get.find<ProductController>();
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   Future<void> _showEditDialog(Map<String, dynamic> category) async {
     final categoryId = category['id'];

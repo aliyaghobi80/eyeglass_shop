@@ -41,6 +41,8 @@ class CustomDrawer extends StatelessWidget {
 
             decoration: BoxDecoration(color: Colors.blue),
           ),
+
+          //دسته بندی
           FutureBuilder(future: authController.isAdmin(), builder: (context,snapshot){
             if(!snapshot.hasData){
               return  ListTile(
@@ -70,7 +72,7 @@ class CustomDrawer extends StatelessWidget {
               },
             );
           }),
-
+          //محصول
           FutureBuilder(future: authController.isAdmin(), builder: (context,snapshot){
             if(!snapshot.hasData){
               return  ListTile(
@@ -132,7 +134,7 @@ class CustomDrawer extends StatelessWidget {
                   },
                   builder: (context) {
                     print('oben bottomsheet');
-                    return Container(
+                    return SizedBox(
                       height: 150,
                       width: double.infinity,
                       child: Padding(
