@@ -221,7 +221,7 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        '${((product['price'] - product['sale_price']) / product['price'] * 100).round()}% تخفیف ویژه',
+                        '${((double.parse(product['price']) - double.parse(product['sale_price'])) / double.parse(product['price']) * 100).round()}% تخفیف ویژه',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
