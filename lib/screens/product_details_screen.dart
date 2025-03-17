@@ -74,7 +74,7 @@ class ProductDetailsScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(" توضیحات: ${product['name']?.toString() ?? ''}",
+                Text(" توضیحات: ${product['description']?.toString() ?? ''}",
                   style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 16),
@@ -203,9 +203,9 @@ class ProductDetailsScreen extends StatelessWidget {
 
 
    double _calculateDiscountPercentage(Map<String, dynamic> product) {
-     final price = product['price'] as int;
-     final salePrice = product['sale_price'] as int;
-     return ((price - salePrice) / price * 100).round().toDouble();
+     final price = double.parse(product['price']);
+     final salePrice = double.tryParse(product['sale_price']) ;
+     return ((price - salePrice!) / price * 100).round().toDouble();
    }
 
 

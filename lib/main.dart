@@ -1,4 +1,5 @@
 import 'package:eyewear/controllers/product_controller.dart';
+import 'package:eyewear/screens/add_product_screen.dart';
 import 'package:eyewear/screens/manage_categories_screen.dart';
 import 'package:eyewear/screens/product_details_screen.dart';
 import 'package:eyewear/screens/setting_screen.dart';
@@ -39,12 +40,14 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/login', page: () => LoginScreen()),
         GetPage(name: '/register', page: () => RegisterScreen()),
         GetPage(name: '/home', page: () => HomeScreen()),
+        GetPage(name: '/setting', page: () => SettingScreen()),
+        GetPage(name: '/product-details', page: () => ProductDetailsScreen()),
+        GetPage(name: '/add-product', page: () => AddProductScreen()),
+
         GetPage(
           name: '/manage-categories',
           page: () => ManageCategoriesScreen(),
         ),
-        GetPage(name: '/setting', page: () => SettingScreen()),
-        GetPage(name: '/product-details', page: () => ProductDetailsScreen()),
       ],
       initialBinding: BindingsBuilder(() {
         Get.put(ApiService()); // AuthController فقط یه بار ساخته بشه
