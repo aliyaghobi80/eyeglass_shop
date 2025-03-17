@@ -8,8 +8,8 @@ class User {
   final bool isActive;
   final DateTime? dateJoined;
   final DateTime? lastLogin;
-  final String token; // توکن دسترسی
-  final String refreshToken; // توکن رفرش
+  final String accessToken; // تغییر نام از token به accessToken
+  final String refreshToken; // اضافه کردن refresh token
 
   User({
     required this.username,
@@ -21,7 +21,7 @@ class User {
     required this.isActive,
     this.dateJoined,
     this.lastLogin,
-    required this.token,
+    required this.accessToken,
     required this.refreshToken,
   });
 
@@ -36,8 +36,8 @@ class User {
       isActive: json['is_active'] ?? true,
       dateJoined: json['date_joined'] != null ? DateTime.parse(json['date_joined']) : null,
       lastLogin: json['last_login'] != null ? DateTime.parse(json['last_login']) : null,
-      token: json['token'] ?? '',
-      refreshToken: json['refresh_token'] ?? '',
+      accessToken: json['access_token'] ?? '', // تغییر نام از token به accessToken
+      refreshToken: json['refresh_token'] ?? '', // اضافه کردن refresh token
     );
   }
 
@@ -52,8 +52,8 @@ class User {
       'is_active': isActive,
       'date_joined': dateJoined?.toIso8601String(),
       'last_login': lastLogin?.toIso8601String(),
-      'token': token,
-      'refresh_token': refreshToken,
+      'access_token': accessToken, // تغییر نام
+      'refresh_token': refreshToken, // اضافه کردن refresh token
     };
   }
 }

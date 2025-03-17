@@ -1,5 +1,6 @@
 import 'package:eyewear/models/user.dart';
 import 'package:get/get.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 
@@ -21,6 +22,7 @@ class AuthController extends GetxController {
     return user.value!.isSuperuser;
   }
 
+
   Future<void> _loadUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -35,39 +37,63 @@ class AuthController extends GetxController {
       final isActive = prefs.getBool('is_active') ?? true;
       final dateJoined = prefs.getString('date_joined');
       final lastLogin = prefs.getString('last_login');
-      final token = prefs.getString('token') ?? '';
+      final token = prefs.getString('access_token') ?? '';
       final refreshToken = prefs.getString('refresh_token') ?? '';
 
-      // اگر توکن وجود ندارد، به صفحه لاگین هدایت شود
-      if (token.isEmpty) {
+      print('username SharedPreferences✔️✔️\n is $username');
+      print('access_token is: $token');
+
+      // اگر توکن یا نام کاربری وجود نداره، به لاگین برو
+      if (token.isEmpty || username.isEmpty) {
         if (Get.currentRoute != '/login') {
-          Get.offAllNamed('/login'); // جلوگیری از هدایت مکرر
+          Get.offAllNamed('/login');
         }
         return;
       }
 
-      // اگر توکن موجود است، اطلاعات کاربر را بارگذاری کن
-      if (username.isNotEmpty && token.isNotEmpty) {
-        user.value = User(
-          username: username,
-          email: email,
-          firstName: firstName,
-          lastName: lastName,
-          isStaff: isStaff,
-          isSuperuser: isSuperuser,
-          isActive: isActive,
-          dateJoined: dateJoined != null ? DateTime.parse(dateJoined) : null,
-          lastLogin: lastLogin != null ? DateTime.parse(lastLogin) : null,
-          token: token,
-          refreshToken: refreshToken,
-        );
+      // چک کردن انقضای توکن و رفرش کردن در صورت نیاز
+      String validToken = token;
+      if (JwtDecoder.isExpired(token)) {
+        print('Access token is expired, attempting to refresh...');
+        try {
+          validToken = await apiService.refreshAccessToken(refreshToken);
+          await prefs.setString('access_token', validToken); // ذخیره توکن جدید
+          print('New access_token: $validToken');
+        } catch (e) {
+          print('Failed to refresh token: $e');
+          if (Get.currentRoute != '/login') {
+            Get.offAllNamed('/login');
+          }
+          return;
+        }
+      }
+
+      // اگر توکن معتبره، اطلاعات کاربر رو بارگذاری کن
+      user.value = User(
+        username: username,
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        isStaff: isStaff,
+        isSuperuser: isSuperuser,
+        isActive: isActive,
+        dateJoined: dateJoined != null ? DateTime.parse(dateJoined) : null,
+        lastLogin: lastLogin != null ? DateTime.parse(lastLogin) : null,
+        accessToken: validToken, // استفاده از توکن معتبر (جدید یا قدیمی)
+        refreshToken: refreshToken,
+      );
+      print('User loaded: ${user.value}');
+      if (Get.currentRoute != '/home') {
+        Get.offAllNamed('/home'); // انتقال به صفحه هوم
       }
     } catch (e) {
-      // اگر خطایی رخ دهد، نمایش پیام خطا
+      print('Error in _loadUser: $e');
       Get.snackbar('Error', 'Failed to load user data: $e');
+      if (Get.currentRoute != '/login') {
+        Get.offAllNamed('/login');
+      }
     }
   }
-
   Future<void> _saveUser(User user) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', user.username);
@@ -77,10 +103,20 @@ class AuthController extends GetxController {
     await prefs.setBool('is_staff', user.isStaff);
     await prefs.setBool('is_superuser', user.isSuperuser);
     await prefs.setBool('is_active', user.isActive);
-    await prefs.setString('date_joined', user.dateJoined?.toIso8601String() ?? '');
-    await prefs.setString('last_login', user.lastLogin?.toIso8601String() ?? '');
-    await prefs.setString('token', user.token);
+    await prefs.setString(
+      'date_joined',
+      user.dateJoined?.toIso8601String() ?? '',
+    );
+    await prefs.setString(
+      'last_login',
+      user.lastLogin?.toIso8601String() ?? '',
+    );
+    await prefs.setString('access_token', user.accessToken);
     await prefs.setString('refresh_token', user.refreshToken);
+
+    print("Retrieved Access Token: ${prefs.getString('access_token')}");
+    print("Retrieved Refresh Token: ${prefs.getString('refresh_token')}");
+
   }
 
   Future<void> login(String username, String password) async {
@@ -88,17 +124,20 @@ class AuthController extends GetxController {
       isLoading(true);
       final loggedInUser = await apiService.login(username, password);
 
-      if (loggedInUser.token.isEmpty) {
-        throw Exception('Login failed: Token is missing');
+      if (loggedInUser.accessToken.isEmpty ||
+          loggedInUser.refreshToken.isEmpty) {
+        throw Exception('Login failed: Tokens are missing');
       }
 
       user.value = loggedInUser;
       await _saveUser(loggedInUser);
+
       Get.offAllNamed('/home');
     } catch (e) {
-      final errorMsg = e.toString().contains('Exception:')
-          ? e.toString().replaceFirst('Exception: ', '')
-          : 'An error occurred while logging in.';
+      final errorMsg =
+          e.toString().contains('Exception:')
+              ? e.toString().replaceFirst('Exception: ', '')
+              : 'An error occurred while logging in.';
       Get.snackbar('Error', errorMsg);
     } finally {
       isLoading(false);
@@ -111,7 +150,6 @@ class AuthController extends GetxController {
     required String email,
     String? firstName,
     String? lastName,
-
   }) async {
     try {
       isLoading(true);
@@ -133,9 +171,27 @@ class AuthController extends GetxController {
   }
 
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    user.value = null;
-    Get.offAllNamed('/login');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final accessToken = prefs.getString('access_token') ?? '';
+      final refreshToken = prefs.getString('refresh_token') ?? '';
+
+      print("Refresh Token before logout: $refreshToken");
+
+      if (accessToken.isNotEmpty && refreshToken.isNotEmpty) {
+        String validToken = accessToken;
+        if (JwtDecoder.isExpired(accessToken)) { // اضافه کردن jwt_decoder
+          validToken = await apiService.refreshAccessToken(refreshToken);
+          await prefs.setString('access_token', validToken);
+        }
+        await apiService.logout(validToken,refreshToken);
+      }
+
+      await prefs.clear();
+      user.value = null;
+      Get.offAllNamed('/login');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to log out: $e');
+    }
   }
 }
