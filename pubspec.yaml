@@ -34,10 +34,14 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  get: ^4.7.2  # برای استیت منجمنت با GetX
-  http: ^1.3.0  # برای ارتباط با API
-  shared_preferences: ^2.5.2  # برای ذخیره تم
-  web_socket_channel: ^3.0.2  # برای WebSocket
+  get: ^4.7.2
+  http: ^1.3.0
+  shared_preferences: ^2.5.2
+  web_socket_channel: ^3.0.2
+  jwt_decoder: ^2.0.1
+  image_picker: ^1.1.2
+  auto_size_text: ^3.0.0
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

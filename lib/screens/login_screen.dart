@@ -3,8 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
 
 class LoginScreen extends StatelessWidget {
-
-  final AuthController authController = Get.put(AuthController());
+  final AuthController authController = Get.find<AuthController>();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
@@ -37,7 +36,7 @@ class LoginScreen extends StatelessWidget {
               onPressed: () {
                 authController.login(
                   usernameController.text,
-                  passwordController.text,
+                  passwordController.text
                 );
               },
               child: const Text('Login'),
