@@ -27,7 +27,7 @@ class HomeScreen extends StatelessWidget {
         actions: [
           Obx(
             () => CartIconWithBadge(
-              itemCount: cartController.cartItems.value.length,
+              itemCount: cartController.cartItems.length,
               onTap: () {
                 Get.toNamed('cart');
               },
@@ -152,7 +152,7 @@ class HomeScreen extends StatelessWidget {
                                 if (product['is_sale'] == true) ...[
 
                                   Text(
-                                    ' قیمت: ${"${product['price']}".seRagham()} تومان ',
+                                    ' قیمت: ${"${product['price']}".beToman().seRagham()} تومان ',
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.grey[600],

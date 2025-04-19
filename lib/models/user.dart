@@ -10,6 +10,7 @@ class User {
   final DateTime? lastLogin;
   final String accessToken; // تغییر نام از token به accessToken
   final String refreshToken; // اضافه کردن refresh token
+  final String? profilePictureUrl;
 
   User({
     required this.username,
@@ -23,6 +24,7 @@ class User {
     this.lastLogin,
     required this.accessToken,
     required this.refreshToken,
+    this.profilePictureUrl,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class User {
       lastLogin: json['last_login'] != null ? DateTime.parse(json['last_login']) : null,
       accessToken: json['access_token'] ?? '', // تغییر نام از token به accessToken
       refreshToken: json['refresh_token'] ?? '', // اضافه کردن refresh token
+      profilePictureUrl: json['profile_picture'] as String?,
     );
   }
 
@@ -54,6 +57,7 @@ class User {
       'last_login': lastLogin?.toIso8601String(),
       'access_token': accessToken, // تغییر نام
       'refresh_token': refreshToken, // اضافه کردن refresh token
+      'profile_picture':profilePictureUrl,
     };
   }
 }

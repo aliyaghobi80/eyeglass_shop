@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import '../controllers/auth_controller.dart';
 
 class RegisterScreen extends StatelessWidget {
@@ -10,7 +13,51 @@ class RegisterScreen extends StatelessWidget {
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
 
+  // Add Rx variable to store and observe the selected image
+  final Rx<File?> selectedImage = Rx<File?>(null);
+
   RegisterScreen({super.key});
+
+  // Function to pick image
+  Future<void> pickImage(ImageSource source) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: source);
+
+    if (image != null) {
+      selectedImage.value = File(image.path);
+      print('image path is :${selectedImage.value!.path}');
+
+    }
+    print('image is null');
+  }
+
+  // Show bottom sheet for image source selection
+  void showImageSourceSelection(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.camera_alt),
+            title: const Text('Camera'),
+            onTap: () {
+              pickImage(ImageSource.camera);
+              Get.back();
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_library),
+            title: const Text('Gallery'),
+            onTap: () {
+              pickImage(ImageSource.gallery);
+              Get.back();
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +72,35 @@ class RegisterScreen extends StatelessWidget {
               const Text(
                 'Create an Account',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              // Profile picture selection
+              Obx(
+                    () => GestureDetector(
+                  onTap: () => showImageSourceSelection(context),
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey),
+                    ),
+                    child: selectedImage.value == null
+                        ? const Icon(
+                      Icons.add_a_photo,
+                      size: 40,
+                      color: Colors.grey,
+                    )
+                        : ClipOval(
+                      child: Image.file(
+                        selectedImage.value!,
+                        fit: BoxFit.cover,
+                        width: 100,
+                        height: 100,
+                      ),
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
               TextField(
@@ -64,6 +140,7 @@ class RegisterScreen extends StatelessWidget {
                       email: emailController.text,
                       firstName: firstNameController.text,
                       lastName: lastNameController.text,
+                      profilePicture: selectedImage.value, // Pass the selected image
                     );
                   },
                   child: const Text('Register'),

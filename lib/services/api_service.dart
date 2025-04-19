@@ -1,7 +1,6 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,57 +8,69 @@ import '../models/user.dart';
 import '../utils/constants.dart';
 import '../models/product.dart';
 
+
 class ApiService {
   // متد ثبت‌نام
+
+
+
   Future<User> register({
     required String username,
     required String password,
     required String email,
     String? firstName,
     String? lastName,
+    File? profilePicture,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse(Constants.registerUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'username': username,
-          'password': password,
-          'email': email,
-          'first_name': firstName ?? '',
-          'last_name': lastName ?? '',
-        }),
-      );
+      var uri = Uri.parse(Constants.registerUrl);
+      var request = http.MultipartRequest('POST', uri);
 
-      if (response.statusCode == 201) {
+      // اضافه کردن فیلدهای متنی
+      request.fields['username'] = username;
+      request.fields['password'] = password;
+      request.fields['email'] = email;
+      request.fields['first_name'] = firstName ?? '';
+      request.fields['last_name'] = lastName ?? '';
+
+      // اضافه کردن فایل تصویر (اگه وجود داشته باشه)
+      if (profilePicture != null) {
+        var stream = http.ByteStream(profilePicture.openRead());
+        var length = await profilePicture.length();
+        var multipartFile = http.MultipartFile(
+          'profile_picture', // نام فیلد باید با بک‌اند (SignupSerializer) مطابقت داشته باشه
+          stream,
+          length,
+          filename: profilePicture.path.split('/').last,
+        );
+        request.files.add(multipartFile);
+      }
+
+      // ارسال درخواست
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      print('Response: ${response.statusCode} - ${response.body}');
+
+      if (response.statusCode == 201||response.statusCode ==200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
-
         final userData = User.fromJson({
           ...responseData['user'] as Map<String, dynamic>,
           'access_token': responseData['access_token'] ?? '',
           'refresh_token': responseData['refresh_token'] ?? '',
         });
-
-        Get.snackbar(
-          'موفقیت',
-          'ثبت‌نام با موفقیت انجام شد',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(10),
-          maxWidth: 300,
-        );
-
+        Get.snackbar('موفقیت', 'ثبت‌نام با موفقیت انجام شد');
+        print("userData: $userData");
+        print("userImage: ${userData.profilePictureUrl}");
         return userData;
       } else {
-        throw Exception('خطا در ثبت‌نام: ${response.body}');
+        throw Exception('ثبت‌نام: ${utf8.decode(response.bodyBytes)}');
       }
     } catch (e) {
-      throw Exception('خطا در ثبت‌نام: $e');
+      print('Error in register: $e');
+      throw Exception(' ثبت‌نام: $e');
     }
   }
-
   /// 📌 متد ورود به سیستم
   Future<User> login(String username, String password) async {
     try {

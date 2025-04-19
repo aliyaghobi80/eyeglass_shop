@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:eyewear/models/user.dart';
 import 'package:get/get.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -37,6 +39,7 @@ class AuthController extends GetxController {
       final lastLogin = prefs.getString('last_login');
       final token = prefs.getString('access_token') ?? '';
       final refreshToken = prefs.getString('refresh_token') ?? '';
+      final profilePictureUrl = prefs.getString('profile_picture_url') ?? '';
 
       if (token.isEmpty || username.isEmpty) {
         if (Get.currentRoute != '/login') {
@@ -51,6 +54,7 @@ class AuthController extends GetxController {
           validToken = await apiService.refreshAccessToken(refreshToken);
           await prefs.setString('access_token', validToken);
         } catch (e) {
+          Get.snackbar('خطا', 'خطا در بارگذاری اطلاعات کاربر: $e');
           if (Get.currentRoute != '/login') {
             Get.offAllNamed('/login');
           }
@@ -70,8 +74,9 @@ class AuthController extends GetxController {
         lastLogin: lastLogin != null ? DateTime.parse(lastLogin) : null,
         accessToken: validToken,
         refreshToken: refreshToken,
+        profilePictureUrl: profilePictureUrl,
       );
-
+      print("auth username:${user.value!.username}");
       if (Get.currentRoute != '/home') {
         Get.offAllNamed('/home');
       }
@@ -102,6 +107,7 @@ class AuthController extends GetxController {
     );
     await prefs.setString('access_token', user.accessToken);
     await prefs.setString('refresh_token', user.refreshToken);
+    await prefs.setString('profile_picture_url', user.profilePictureUrl ?? '');
   }
 
   Future<void> login(String username, String password) async {
@@ -129,22 +135,29 @@ class AuthController extends GetxController {
     }
   }
 
+
+
+
   Future<void> register({
     required String username,
     required String password,
     required String email,
     String? firstName,
     String? lastName,
+    File? profilePicture, // Added optional profile picture parameter
   }) async {
     try {
       isLoading(true);
+
       final registeredUser = await apiService.register(
         username: username,
         password: password,
         email: email,
         firstName: firstName ?? '',
         lastName: lastName ?? '',
+        profilePicture: profilePicture ?? File(''), // Pass the profile picture to API service
       );
+
       user.value = registeredUser;
       await _saveUser(registeredUser);
       Get.offAllNamed('/home');
@@ -154,7 +167,6 @@ class AuthController extends GetxController {
       isLoading(false);
     }
   }
-
   Future<void> logout() async {
     try {
       final prefs = await SharedPreferences.getInstance();

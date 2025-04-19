@@ -149,9 +149,13 @@ class CustomDrawer extends StatelessWidget {
                               spacing: 10,
                               children: [
                                 Expanded(
-                                  child: CustomOkButton(onPressed: (){}, text: 'بله',)),
+                                  child: CustomOkButton(onPressed: (){
+                                    authController.logout();
+                                  }, text: 'بله',)),
                                 Expanded(
-                                  child: CustomCancelButton(onPressed: (){}, text: 'خیر',)),
+                                  child: CustomCancelButton(onPressed: (){
+                                    Get.back();
+                                  }, text: 'خیر',)),
 
                               ],
                             ),
